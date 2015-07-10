@@ -1,0 +1,31 @@
+{
+  "name": "goboard",
+  "version": "0.0.1",
+  "description": "GoBoard",
+  "keywords": [
+    "go", "baduk", "weiqi", "ES6"
+  ],
+  "homepage": "https://github.com/neilh23/goboard",
+  "author": {
+    "name": "Neil Duff-Howie",
+    "email": "neil@duff-howie.com",
+    "url": "https://github.com/neilh23"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/neilh23/goboard.git"
+  },
+  "licenses": [ { "type": "MIT" } ],
+  "devDependencies": {
+    "eslint": "*",
+    "babel": "*",
+    "babel-eslint": "*",
+    "gulp": "*",
+    "uglify": "*",
+    "gulp-babel": "*",
+    "gulp-uglify": "*",
+    "gulp-sourcemaps": "*",
+    "gulp-concat": "*",
+    "gulp-connect": "*"
+  }
+}
