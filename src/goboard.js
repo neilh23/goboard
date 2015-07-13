@@ -25,7 +25,7 @@ class GoBoard {
       grd.addColorStop(1, "#222222");
     } else {
       grd.addColorStop(0.2, "#FFFFFF");
-      grd.addColorStop(1, "#BBBBBB");
+      grd.addColorStop(1, "#AAAAAA");
     }
     ctx.fillStyle = grd;
 
@@ -120,6 +120,7 @@ class GoBoard {
 
   setupBoard() {
     if (this.model === undefined) { return; }
+
     this.boardIsSetup = true;
     var el = this.element;
     var sz = Math.min(el.width, el.height);
@@ -133,7 +134,7 @@ class GoBoard {
 
     var zw = (sz - (mar * 2)) / (dim - 1);
 
-    ctx.fillStyle = "#FFFF99";
+    ctx.fillStyle = "#CCCC55";
     ctx.fillRect(0, 0, sz, sz);
 
     ctx.fillStyle = "#000000";

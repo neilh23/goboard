@@ -4,6 +4,9 @@ var babel = require("gulp-babel");
 var concat = require("gulp-concat");
 var connect = require("gulp-connect");
 var sourcemaps = require("gulp-sourcemaps");
+var karma = require('gulp-karma');
+
+var testFiles = [ "test/*Spec.js" ]
 
 gulp.task("rebuild", function () {
   return gulp.src([ "src/**/*.js" ], { base: "src" })
@@ -22,3 +25,18 @@ gulp.task("watch", function(){
 gulp.task("serve", function(){ connect.server({port: 9000}); });
 
 gulp.task("default", [ 'rebuild', 'serve', 'watch' ]);
+
+gulp.task('test', [ 'rebuild' ], function() {
+  // Be sure to return the stream 
+  return gulp.src(testFiles)
+    .pipe(karma({
+      configFile: 'karma.conf.js',
+      action: 'run'
+    }))
+    .on('error', function(err) {
+      // Make sure failed tests cause gulp to exit non-zero 
+      throw err;
+    });
+});
+
+// gulp.task('test', [ 'rebuild', 'runtests' ]);

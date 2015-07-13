@@ -8,9 +8,7 @@ class SGFGameController {
     var parser = new SGFParser(this.model);
 
     let model = this.model;
-    parser.setCallback(() => {
-      model.goToMove(-1); // just display the last move
-    });
+    parser.setCallback(() => { model.goToMove(-1); }); // just display the last move
 
     this.board = new GoBoard(el, this.model);
     this.model.registerMoveListener(this.board);
@@ -20,6 +18,5 @@ class SGFGameController {
     } else {
       parser.parse(sgf);
     }
-
   }
 }

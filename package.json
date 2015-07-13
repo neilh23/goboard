@@ -3,7 +3,10 @@
   "version": "0.0.1",
   "description": "GoBoard",
   "keywords": [
-    "go", "baduk", "weiqi", "ES6"
+    "go",
+    "baduk",
+    "weiqi",
+    "ES6"
   ],
   "homepage": "https://github.com/neilh23/goboard",
   "author": {
@@ -15,17 +18,29 @@
     "type": "git",
     "url": "https://github.com/neilh23/goboard.git"
   },
-  "licenses": [ { "type": "MIT" } ],
+  "licenses": [
+    {
+      "type": "MIT"
+    }
+  ],
   "devDependencies": {
     "eslint": "*",
     "babel": "*",
     "babel-eslint": "*",
+    "chai": "*",
+    "mocha": "*",
+    "karma": "~0.12.37",
+    "karma-chai": "*",
+    "karma-mocha": "~0.2.0",
+    "sinon": "*",
     "gulp": "*",
     "uglify": "*",
     "gulp-babel": "*",
     "gulp-uglify": "*",
     "gulp-sourcemaps": "*",
     "gulp-concat": "*",
-    "gulp-connect": "*"
+    "gulp-connect": "*",
+    "gulp-karma": "*",
+    "karma-chrome-launcher": "~0.2.0"
   }
 }
