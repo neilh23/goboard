@@ -1,10 +1,8 @@
-// import { Stone } from "stone";
-// import { Move } from "move";
-//
-// external Stone
-// external Move
+import Stone from './stone';
+import Move from './move';
+import GameInfo from './gameinfo';
 
-class GameModel {
+export default class GameModel {
   constructor() {
     this.firstMove = undefined;
     this.lastMove = undefined;
@@ -12,10 +10,34 @@ class GameModel {
     this.gameInfo = new GameInfo();
     this.moveListeners = new Set();
     this.dimension = 19; // default
+    this.blackCaptures = 0;
+    this.whiteCaptures = 0;
+  }
+
+  // handy little function ...
+  logPosition() {
+    if (this.dimension !== 19) {
+      console.log('ERROR: position logging currently only for 19x19');
+      return;
+    }
+    if (this.position === undefined) {
+      console.log('=== NULL ===');
+      return;
+    }
+    console.log('   ' + '0123456789012345678'.split('').join(' '));
+    for (let y = 0; y < 19; y++) {
+      let foo = new Array(19);
+
+      for (let x = 0; x < 19; x++) {
+        foo[x] = this.position[x][y] || '.';
+      }
+      let lead = ((y < 10) ? ' ' : '') + y + ' ';
+      console.log(lead + foo.join(' '));
+    }
   }
   addMove(x, y, color, comment) {
     var stone = new Stone(x, y, color);
-    var move = new Move(this.lastMove, [ stone ], comment);
+    var move = new Move(this.lastMove, [stone], comment);
     if (this.firstMove === undefined) {
       this.firstMove = move;
     }
@@ -40,37 +62,39 @@ class GameModel {
     this.position = new Array(dim);
     for (let i = 0; i < dim; i++) { this.position[i] = new Array(dim); }
     this.currentMove = undefined;
+    this.blackCaptures = 0;
+    this.whiteCaptures = 0;
   }
 
   libertyLoop(colour, x, y) {
     let dim = this.dimension;
-    // console.log("ll - " + x +"/" + y +" - " + dim);
+    // console.log('ll - ' + x +'/' + y +' - ' + dim);
     if (x < 0 || y < 0 || x >= dim || y >= dim) {
-      // console.log("ll - oob edge");
+      // console.log('ll - oob edge');
       return true;
     }
 
     if (this.libertyCheck[x][y] === true) {
-      // console.log("ll - already");
+      // console.log('ll - already');
       return true;
     }
     let c = this.position[x][y];
     if (c === undefined) {
-      // console.log("ll - empty, giving up");
+      // console.log('ll - empty, giving up');
       return false;
     }
     this.libertyCheck[x][y] = true;
 
     if (c !== colour) {
-      // console.log("ll - edge");
+      // console.log('ll - edge');
       return true;
     } // edge of the shape
 
-    // console.log("ll - recursing");
-    return (this.libertyLoop(colour, x - 1, y)
-            && this.libertyLoop(colour, x + 1, y)
-            && this.libertyLoop(colour, x, y - 1)
-            && this.libertyLoop(colour, x, y + 1));
+    // console.log('ll - recursing');
+    return (this.libertyLoop(colour, x - 1, y) &&
+            this.libertyLoop(colour, x + 1, y) &&
+            this.libertyLoop(colour, x, y - 1) &&
+            this.libertyLoop(colour, x, y + 1));
   }
   checkLiberties(x, y, removeStones) {
     let dim = this.dimension;
@@ -80,16 +104,23 @@ class GameModel {
     for (let i = 0; i < dim; i++) { this.libertyCheck[i] = new Array(dim); }
     let c = this.position[x][y];
     if (this.libertyLoop(c, x, y)) {
-      // console.log("Stone has no liberties " + x + "/" + y);
+      // console.log('Stone has no liberties ' + x + '/' + y);
       if (removeStones) {
+        let captures = 0;
         for (x = 0; x < dim; x++) {
           for (y = 0; y < dim; y++) {
             if (this.libertyCheck[x][y] === true && this.position[x][y] === c) {
-              // console.log("Removing " + x + "/" + y);
+              // console.log('Removing ' + x + '/' + y);
               this.position[x][y] = undefined;
+              captures++;
             }
           }
 
+        }
+        if (c === 'b') {
+          this.blackCaptures += captures;
+        } else if (c === 'w') {
+          this.blackCaptures += captures;
         }
       }
       return true;
@@ -100,7 +131,7 @@ class GameModel {
   goToMove(moveNum) {
     this.resetPosition();
     if ((moveNum || 0) === 0 || this.lastMove === undefined) {
-      // console.log("goToMove - no doing anything move " + moveNum + " lm " + this.lastMove);
+      // console.log('goToMove - no doing anything move ' + moveNum + ' lm ' + this.lastMove);
       this.informListeners();
       return;
     }
@@ -109,7 +140,7 @@ class GameModel {
     if (moveNum < 0) {
       moveNum = Math.max(0, this.lastMove.moveNumber + (1 + moveNum));
     }
-    // console.log("Going to move " + moveNum);
+    // console.log('Going to move ' + moveNum);
     for (let i = 0; i < moveNum; i++) {
       this.nextMoveInternal();
     }
@@ -138,8 +169,8 @@ class GameModel {
       }
     }
     for (let stone of this.currentMove.stones) {
-      // console.log("setting stone at " + stone.x + "/" + stone.y);
-      // console.log("Was: " + this.position[stone.x][stone.y]);
+      // console.log('setting stone at ' + stone.x + '/' + stone.y);
+      // console.log('Was: ' + this.position[stone.x][stone.y]);
       this.position[stone.x][stone.y] = stone.stoneType;
       this.checkLiberties(stone.x - 1, stone.y, true);
       this.checkLiberties(stone.x + 1, stone.y, true);

@@ -1,14 +1,19 @@
 <html>
 
 <head>
-    <script src="dist/goboard-all.js"></script>
+    <!-- script data-main="dist/goboard-dist.min.js" src="node_modules/requirejs/require.js"></script -->
+    <script src="dist/goboard-dist.min.js"></script>
 </head>
 
-<body onload="new SGFGameController(goboardbase, 'sgf/ShusakuvsInseki.sgf')">
+<!-- body onload="GoBoard().SGFGameController(goboardbase, 'sgf/ShusakuvsInseki.sgf')" -->
+<body>
     <div style="position: relative;">
     <canvas id="goboardbase" width="500" height="500" style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
     <canvas id="goboardstones" width="500" height="500" style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
     </div>
+    <script>
+        createGoBoard({board: goboardbase, sgf: 'sgf/ShusakuvsInseki.sgf'});
+    </script>
 </body>
 
 </html>

@@ -1,4 +1,4 @@
-class Move {
+export default class Move {
   constructor(previousMove, stones, comment) {
     this.previousMove = previousMove;
     this.stones = stones;

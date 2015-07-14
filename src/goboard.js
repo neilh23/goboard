@@ -1,5 +1,4 @@
-/* global window */
-class GoBoard {
+export default class GoBoard {
   constructor(el, model) {
     this.element = el;
     this.model = model;
@@ -8,10 +7,9 @@ class GoBoard {
     this.boardIsSetup = false;
   }
 
-  drawStone(x, y, isBlack)
-  {
+  drawStone(x, y, isBlack) {
     var p = this.goParams;
-    var ctx = window.goboardstones.getContext("2d");
+    var ctx = window.goboardstones.getContext('2d');
     var mar = p.margin;
 
     ctx.beginPath();
@@ -19,23 +17,27 @@ class GoBoard {
     x = Math.floor(mar + (x * p.zw)) + 0.5;
     y = Math.floor(mar + (y * p.zw)) + 0.5;
 
-    var grd = ctx.createRadialGradient(x + (p.stone / 3), y - (p.stone / 2), 1, x, y, p.stone * 0.8 );
+    var grd = ctx.createRadialGradient(x + (p.stone / 3), y - (p.stone / 2), 1, x, y, p.stone * 0.85);
     if (isBlack) {
-      grd.addColorStop(0.2, "#777777");
-      grd.addColorStop(1, "#222222");
+      grd.addColorStop(0.2, '#444444');
+      grd.addColorStop(1, '#000000');
     } else {
-      grd.addColorStop(0.2, "#FFFFFF");
-      grd.addColorStop(1, "#AAAAAA");
+      grd.addColorStop(0.2, '#FFFFFF');
+      grd.addColorStop(1, '#AAAAAA');
     }
     ctx.fillStyle = grd;
 
     ctx.arc(x, y, p.stone - 0.5, 0, 360);
+    ctx.shadowOffsetX = -(p.stone / 10);
+    ctx.shadowOffsetY = (p.stone / 10);
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 2;
     ctx.fill();
   }
 
   deleteStone(x, y) {
     var p = this.goParams;
-    var ctx = window.goboardstones.getContext("2d");
+    var ctx = window.goboardstones.getContext('2d');
     var mar = p.margin;
 
     x = Math.floor(mar + (x * p.zw)) + 0.5;
@@ -55,9 +57,9 @@ class GoBoard {
     if (this.lastX === lx && this.lastY === ly) { return; }
     if (this.lastX >= 0 && this.lastY >= 0) {
       let stone = this.model.stoneAt(this.lastX, this.lastY);
-      if (stone === "b") {
+      if (stone === 'b') {
         this.drawStone(this.lastX, this.lastY, true);
-      } else if (stone === "w") {
+      } else if (stone === 'w') {
         this.drawStone(this.lastX, this.lastY, false);
       } else {
         this.deleteStone(this.lastX, this.lastY);
@@ -73,10 +75,9 @@ class GoBoard {
     this.lastX = lx; this.lastY = ly;
   }
 
-
   drawLine(idx, horizontal, highlight) {
     var p = this.goParams;
-    var ctx = window.goboardbase.getContext("2d");
+    var ctx = window.goboardbase.getContext('2d');
     var mar = p.margin;
 
     var v = Math.floor(mar + idx * p.zw) + 0.5;
@@ -87,9 +88,9 @@ class GoBoard {
       ctx.moveTo(p.mar1, v); ctx.lineTo(p.mar2, v); ctx.stroke();
     }
     if (highlight) {
-      ctx.strokeStyle = "#000000";
+      ctx.strokeStyle = '#EE6666';
     } else {
-      ctx.strokeStyle = "#333333";
+      ctx.strokeStyle = '#555533';
     }
     ctx.stroke();
   }
@@ -102,7 +103,7 @@ class GoBoard {
 
   drawDots() {
     var p = this.goParams;
-    var ctx = window.goboardbase.getContext("2d");
+    var ctx = window.goboardbase.getContext('2d');
     var dim = this.model.dimension;
 
     this.dot(ctx, p.mid, p.mid, p.dr);
@@ -126,7 +127,7 @@ class GoBoard {
     var sz = Math.min(el.width, el.height);
     el.width = el.height = sz;
 
-    var ctx = el.getContext("2d");
+    var ctx = el.getContext('2d');
 
     var dim = this.model.dimension;
 
@@ -134,10 +135,10 @@ class GoBoard {
 
     var zw = (sz - (mar * 2)) / (dim - 1);
 
-    ctx.fillStyle = "#CCCC55";
+    ctx.fillStyle = '#DDDD88';
     ctx.fillRect(0, 0, sz, sz);
 
-    ctx.fillStyle = "#000000";
+    ctx.fillStyle = '#000000';
     ctx.lineWidth = 0.5;
 
     var mar1 = mar + 0.5;
@@ -146,21 +147,21 @@ class GoBoard {
     var mid = mar + (Math.floor(dim / 2)) * zw;
     var dr = Math.max((zw) / 8, 2);
 
-    this.goParams = { context: ctx, mid: mid, dr: dr, margin: mar, mar1: mar1, mar2: mar2, sz: sz, zw: zw, stone: Math.ceil(zw * 0.48) };
+    this.goParams = {context: ctx, mid: mid, dr: dr, margin: mar, mar1: mar1, mar2: mar2, sz: sz, zw: zw, stone: Math.ceil(zw * 0.48)};
 
-    for (var i = 0; i < dim; i++ ) {
+    for (var i = 0; i < dim; i++) {
       this.drawLine(i, true, false);
       this.drawLine(i, false, false);
     }
     this.drawDots();
 
-    window.goboardstones.addEventListener("mousemove", e => this.mousey(e), false);
+    window.goboardstones.addEventListener('mousemove', e => this.mousey(e), false);
   }
 
   resetStones() {
     if (!this.boardIsSetup) { this.setupBoard(); }
     var el = window.goboardstones;
-    var ctx = el.getContext("2d");
+    var ctx = el.getContext('2d');
     var dim = this.model.dimension;
 
     ctx.clearRect(0, 0, el.width, el.height);
@@ -168,9 +169,9 @@ class GoBoard {
     for (let x = 0; x < dim; x++) {
       for (let y = 0; y < dim; y++) {
         let stone = this.model.stoneAt(x, y);
-        if (stone === "b") {
+        if (stone === 'b') {
           this.drawStone(x, y, true);
-        } else if (stone === "w") {
+        } else if (stone === 'w') {
           this.drawStone(x, y, false);
         }
       }

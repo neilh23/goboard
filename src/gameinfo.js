@@ -1,6 +1,6 @@
-class GameInfo {
+export default class GameInfo {
   constructor() {
     this.komi = 0;
-    this.result = "Unknown";
+    this.result = 'Unknown';
   }
 }

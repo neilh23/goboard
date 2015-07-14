@@ -5,3 +5,5 @@ class Stone {
     this.stoneType = stoneType;
   }
 }
+
+export default Stone;
