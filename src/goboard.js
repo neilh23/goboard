@@ -221,6 +221,22 @@ export default class GoBoard {
     this.writeCoords();
 
     window.goboardstones.addEventListener('mousemove', e => this.mousey(e), false);
+    window.buttonstart.addEventListener('click', () => this.model.goToMove(0));
+    window.buttonfback.addEventListener('click', () => this.model.back(10));
+    window.buttonback.addEventListener('click', () => this.model.back(1));
+    window.buttonforward.addEventListener('click', () => this.model.forward(1));
+    window.buttonfforward.addEventListener('click', () => this.model.forward(10));
+    window.buttonend.addEventListener('click', () => this.model.goToMove(-1));
+    window.addEventListener('keydown', e => {
+      switch (e.keyCode) {
+        case 35: this.model.goToMove(-1); break; // end
+        case 36: this.model.goToMove(0); break; // home
+        case 37: this.model.back(1); break; // left
+        case 38: this.model.forward(10); break; // up
+        case 39: this.model.forward(1); break; // right
+        case 40: this.model.back(10); break; // down
+      }
+    });
   }
 
   resetStones() {
@@ -241,5 +257,6 @@ export default class GoBoard {
         }
       }
     }
+    window.gocounter.innerText = '' + this.model.currentMoveNumber();
   }
 }

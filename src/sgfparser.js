@@ -16,7 +16,7 @@ class SGFParser {
   handleKeyValue(a, b) {
     // http://senseis.xmp.net/?SmartGameFormat
     if (a === 'SZ') {
-      this.model.setDimension(b);
+      this.model.setDimension(parseInt(b));
       // } else if (a === 'GM') {
       // Game - should always be 1 ... assuming this for now
     } else if (a === 'KM') {

@@ -17,7 +17,7 @@ export default class GameModel {
   // handy little function ...
   logPosition() {
     if (this.dimension !== 19) {
-      console.log('ERROR: position logging currently only for 19x19');
+      console.log(`ERROR: position logging currently only for 19x19 (${this.dimension})`);
       return;
     }
     if (this.position === undefined) {
@@ -120,7 +120,7 @@ export default class GameModel {
         if (c === 'b') {
           this.blackCaptures += captures;
         } else if (c === 'w') {
-          this.blackCaptures += captures;
+          this.whiteCaptures += captures;
         }
       }
       return true;
@@ -140,6 +140,7 @@ export default class GameModel {
     if (moveNum < 0) {
       moveNum = Math.max(0, this.lastMove.moveNumber + (1 + moveNum));
     }
+    moveNum = Math.min(moveNum, this.lastMove.moveNumber);
     // console.log('Going to move ' + moveNum);
     for (let i = 0; i < moveNum; i++) {
       this.nextMoveInternal();
@@ -150,9 +151,20 @@ export default class GameModel {
     this.nextMoveInternal();
     this.informListeners();
   }
+  back(num) {
+    var lm = this.lastMoveNumber();
+    var cm = this.currentMoveNumber();
+    this.goToMove(Math.max(0, Math.min(cm - num, lm)));
+  }
+  forward(num) {
+    for (let i = 0; i < num; i++) {
+      this.nextMove();
+    }
+  }
   nextMoveInternal() {
     if (this.position === undefined) { return undefined; }
     if (this.currentMove === undefined) {
+      if (this.firstMove === undefined) { return undefined; }
       this.currentMove = this.firstMove;
     } else {
       let nm = this.currentMove.nextMoves;
@@ -197,5 +209,13 @@ export default class GameModel {
     }
 
     return this.position[x][y];
+  }
+  currentMoveNumber() {
+    if (this.currentMove === undefined) { return 0; }
+    return this.currentMove.moveNumber;
+  }
+  lastMoveNumber() {
+    if (this.lastMove === undefined) { return 0; }
+    return this.lastMove.moveNumber;
   }
 }

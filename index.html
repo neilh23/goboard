@@ -3,14 +3,25 @@
 <head>
     <!-- script data-main="dist/goboard-dist.min.js" src="node_modules/requirejs/require.js"></script -->
     <script src="dist/goboard-dist.min.js"></script>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
 </head>
 
 <!-- body onload="GoBoard().SGFGameController(goboardbase, 'sgf/ShusakuvsInseki.sgf')" -->
 <body>
-    <div style="position: relative;">
+    <div style="position: relative; width: 500px; height: 520px;">
     <canvas id="goboardbase" width="500" height="500" style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
     <canvas id="goboarddecr" width="500" height="500" style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
     <canvas id="goboardstones" width="500" height="500" style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
+    <div id="gocounter" style="position: absolute; left: 0; bottom: 0; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: moz-none; -ms-user-select: none; user-select: none;"></div>
+    <div style="position: absolute; right: 0; bottom: 0; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: moz-none; -ms-user-select: none; user-select: none;">
+        <i id="buttonstart" class="fa fa-fast-backward"></i>
+        <i id="buttonfback" class="fa fa-backward"></i>
+        <i id="buttonback" class="fa fa-arrow-left"></i>
+        <i id="buttonforward" class="fa fa-arrow-right"></i>
+        <!--i id="buttonplay" class="fa fa-play"></i -->
+        <i id="buttonfforward" class="fa fa-forward"></i>
+        <i id="buttonend" class="fa fa-fast-forward"></i>
+    </div>
     </div>
     <script>
         createGoBoard({board: goboardbase, sgf: 'sgf/ShusakuvsInseki.sgf'});
