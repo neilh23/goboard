@@ -66,21 +66,44 @@ export default class GoBoard {
       }
     }
 
-    if (!this.model.allowStoneAt(lx, ly)) {
-      this.lastX = -1; this.lastY = -1;
+    this.clearDecr();
+    this.drawLine(lx, true, true);
+    this.drawLine(ly, false, true);
+    this.writeCoords(lx, ly);
+
+    if (this.model.allowStoneAt(lx, ly)) {
+      this.drawStone(lx, ly, true);
       return;
     }
-
-    this.drawStone(lx, ly, true);
     this.lastX = lx; this.lastY = ly;
+  }
+
+  clearDecr() {
+    var el = window.goboarddecr;
+    var ctx = el.getContext('2d');
+
+    ctx.clearRect(0, 0, el.width, el.height);
   }
 
   drawLine(idx, horizontal, highlight) {
     var p = this.goParams;
-    var ctx = window.goboardbase.getContext('2d');
+    var ctx;
+
+    var dim = this.model.dimension;
+
+    if (idx < 0 || idx >= dim) { return; }
+
+    if (highlight) {
+      ctx = window.goboarddecr.getContext('2d');
+    } else {
+      ctx = window.goboardbase.getContext('2d');
+
+    }
     var mar = p.margin;
 
     var v = Math.floor(mar + idx * p.zw) + 0.5;
+
+    ctx.beginPath();
 
     if (horizontal) {
       ctx.moveTo(v, p.mar1); ctx.lineTo(v, p.mar2);
@@ -88,11 +111,18 @@ export default class GoBoard {
       ctx.moveTo(p.mar1, v); ctx.lineTo(p.mar2, v); ctx.stroke();
     }
     if (highlight) {
-      ctx.strokeStyle = '#EE6666';
+      ctx.strokeStyle = '#664422';
     } else {
-      ctx.strokeStyle = '#555533';
+      ctx.strokeStyle = '#444422';
+    }
+    if (highlight) {
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.shadowColor = 'rgba(15,2,0,0.5)';
+      ctx.shadowBlur = 4;
     }
     ctx.stroke();
+    ctx.closePath();
   }
 
   dot(ctx, x, y, dw) {
@@ -119,6 +149,39 @@ export default class GoBoard {
     }
   }
 
+  writeCoords(highX, highY) {
+    var alpha = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
+    var dim = this.model.dimension;
+    var el = window.goboarddecr;
+    var ctx = el.getContext('2d');
+    var p = this.goParams;
+
+    ctx.beginPath();
+
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowColor = 'rgba(15,2,0,0.5)';
+    ctx.shadowBlur = 0;
+    for (let i = 0; i < dim; i++) {
+      let v = Math.floor(p.margin + i * p.zw) + 0.5;
+      if (i === highX) {
+        ctx.fillStyle = '#000000';
+        ctx.shadowBlur = 2;
+      } else {
+        ctx.fillStyle = '#444444';
+      }
+      ctx.fillText(alpha[i], Math.floor(v - p.zw / 8) + 0.5, 10);
+      if (i === highY) {
+        ctx.fillStyle = '#000000';
+        ctx.shadowBlur = 2;
+      } else {
+        ctx.fillStyle = '#444444';
+      }
+      ctx.fillText(`${i + 1}`, 2, Math.floor(v + p.zw / 12) + 0.5);
+    }
+    ctx.closePath();
+  }
+
   setupBoard() {
     if (this.model === undefined) { return; }
 
@@ -131,7 +194,8 @@ export default class GoBoard {
 
     var dim = this.model.dimension;
 
-    var mar = Math.floor(sz / 30);
+    // var mar = Math.floor(sz / 30);
+    var mar = Math.floor(sz / 20);
 
     var zw = (sz - (mar * 2)) / (dim - 1);
 
@@ -154,6 +218,7 @@ export default class GoBoard {
       this.drawLine(i, false, false);
     }
     this.drawDots();
+    this.writeCoords();
 
     window.goboardstones.addEventListener('mousemove', e => this.mousey(e), false);
   }
