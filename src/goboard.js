@@ -7,7 +7,7 @@ export default class GoBoard {
     this.boardIsSetup = false;
   }
 
-  drawStone(x, y, isBlack) {
+  drawStone(x, y, isBlack, isCurrent=false) {
     var p = this.goParams;
     var ctx = window.goboardstones.getContext('2d');
     var mar = p.margin;
@@ -33,6 +33,30 @@ export default class GoBoard {
     ctx.shadowColor = 'rgba(0,0,0,0.5)';
     ctx.shadowBlur = 2;
     ctx.fill();
+
+    ctx.closePath();
+
+    if (isCurrent) {
+      ctx.beginPath();
+      if (isBlack) {
+        ctx.strokeStyle = '#AAAAAA';
+      } else {
+        ctx.strokeStyle = '#666666';
+      }
+
+      var x1 = x - (p.zw / 6);
+      var x2 = x + (p.zw / 6);
+      var y1 = y - (p.zw / 6);
+      var y2 = y + (p.zw / 6);
+
+      console.log(`isCurrent ${x},${y} , ${x1}-${x2}, ${y1}-${y2} `);
+
+      ctx.moveTo(x1, y); ctx.lineTo(x2, y);
+      ctx.moveTo(x, y1); ctx.lineTo(x, y2);
+
+      ctx.stroke();
+      ctx.closePath();
+    }
   }
 
   deleteStone(x, y) {
@@ -50,10 +74,17 @@ export default class GoBoard {
     var p = this.goParams;
 
     var rect = window.goboardstones.getBoundingClientRect();
-    var x = evt.clientX - rect.left;
-    var y = evt.clientY - rect.top;
+    var x = -1;
+    var y = -1;
+
+    if (evt !== undefined) {
+      x = evt.clientX - rect.left;
+      y = evt.clientY - rect.top;
+    }
+
     var lx = Math.floor((x - (p.margin - p.zw / 2)) / p.zw);
     var ly = Math.floor((y - (p.margin - p.zw / 2)) / p.zw);
+
     if (this.lastX === lx && this.lastY === ly) { return; }
     if (this.lastX >= 0 && this.lastY >= 0) {
       let stone = this.model.stoneAt(this.lastX, this.lastY);
@@ -108,7 +139,7 @@ export default class GoBoard {
     if (horizontal) {
       ctx.moveTo(v, p.mar1); ctx.lineTo(v, p.mar2);
     } else {
-      ctx.moveTo(p.mar1, v); ctx.lineTo(p.mar2, v); ctx.stroke();
+      ctx.moveTo(p.mar1, v); ctx.lineTo(p.mar2, v);
     }
     if (highlight) {
       ctx.strokeStyle = '#664422';
@@ -221,6 +252,7 @@ export default class GoBoard {
     this.writeCoords();
 
     window.goboardstones.addEventListener('mousemove', e => this.mousey(e), false);
+    window.goboardstones.addEventListener('mouseleave', () => this.mousey(), false);
     window.buttonstart.addEventListener('click', () => this.model.goToMove(0));
     window.buttonfback.addEventListener('click', () => this.model.back(10));
     window.buttonback.addEventListener('click', () => this.model.back(1));
@@ -247,13 +279,16 @@ export default class GoBoard {
 
     ctx.clearRect(0, 0, el.width, el.height);
 
+    var lastMove = this.model.currentMoveNumber();
     for (let x = 0; x < dim; x++) {
       for (let y = 0; y < dim; y++) {
-        let stone = this.model.stoneAt(x, y);
-        if (stone === 'b') {
-          this.drawStone(x, y, true);
-        } else if (stone === 'w') {
-          this.drawStone(x, y, false);
+        let stone = this.model.stoneAt(x, y, true);
+        if (stone === undefined) { continue; }
+        let isLast = (stone.moveNumber() === lastMove);
+        if (stone.stoneType === 'b') {
+          this.drawStone(x, y, true, isLast);
+        } else if (stone.stoneType === 'w') {
+          this.drawStone(x, y, false, isLast);
         }
       }
     }

@@ -4,6 +4,7 @@ import GameInfo from './gameinfo';
 
 export default class GameModel {
   constructor() {
+    this.initialBoardPosition = new Move(undefined, []);
     this.firstMove = undefined;
     this.lastMove = undefined;
     this.currentMove = undefined;
@@ -16,6 +17,7 @@ export default class GameModel {
 
   // handy little function ...
   logPosition() {
+    console.log(`Move: ${this.currentMoveNumber()}`);
     if (this.dimension !== 19) {
       console.log(`ERROR: position logging currently only for 19x19 (${this.dimension})`);
       return;
@@ -29,20 +31,33 @@ export default class GameModel {
       let foo = new Array(19);
 
       for (let x = 0; x < 19; x++) {
-        foo[x] = this.position[x][y] || '.';
+        foo[x] = this.stoneAt(x, y) || '.';
       }
       let lead = ((y < 10) ? ' ' : '') + y + ' ';
       console.log(lead + foo.join(' '));
     }
   }
-  addMove(x, y, color, comment) {
+
+  addMove(x, y, color, comment, addToCurrent) {
     var stone = new Stone(x, y, color);
-    var move = new Move(this.lastMove, [stone], comment);
-    if (this.firstMove === undefined) {
-      this.firstMove = move;
+    var move;
+    if (addToCurrent) {
+      move = this.lastMove || this.initialBoardPosition;
+      move.addStone(stone);
+    } else {
+      move = new Move(this.lastMove || this.initialBoardPosition, [stone], comment);
+      if (this.firstMove === undefined) {
+        this.firstMove = move;
+      }
     }
     this.lastMove = move;
     return move;
+  }
+
+  addComment(comment) {
+    var move = this.lastMove || this.initialBoardPosition;
+
+    move.comment = comment;
   }
 
   informListeners() {
@@ -64,6 +79,12 @@ export default class GameModel {
     this.currentMove = undefined;
     this.blackCaptures = 0;
     this.whiteCaptures = 0;
+
+    for (let stone of this.initialBoardPosition.stones) {
+      this.position[stone.x][stone.y] = stone;
+    }
+
+    // console.log(`ResetPosition, movenumber now: ${this.currentMoveNumber()}`);
   }
 
   libertyLoop(colour, x, y) {
@@ -78,7 +99,7 @@ export default class GameModel {
       // console.log('ll - already');
       return true;
     }
-    let c = this.position[x][y];
+    let c = this.stoneAt(x, y);
     if (c === undefined) {
       // console.log('ll - empty, giving up');
       return false;
@@ -96,20 +117,22 @@ export default class GameModel {
             this.libertyLoop(colour, x, y - 1) &&
             this.libertyLoop(colour, x, y + 1));
   }
+
   checkLiberties(x, y, removeStones) {
     let dim = this.dimension;
     if (x < 0 || y < 0 || x >= dim || y >= dim) { return false; }
-    if (this.position === undefined || this.position[x][y] === undefined) { return false; }
+    let c = this.stoneAt(x, y);
+    if (c === undefined) { return false; }
+
     this.libertyCheck = new Array(dim);
     for (let i = 0; i < dim; i++) { this.libertyCheck[i] = new Array(dim); }
-    let c = this.position[x][y];
     if (this.libertyLoop(c, x, y)) {
       // console.log('Stone has no liberties ' + x + '/' + y);
       if (removeStones) {
         let captures = 0;
         for (x = 0; x < dim; x++) {
           for (y = 0; y < dim; y++) {
-            if (this.libertyCheck[x][y] === true && this.position[x][y] === c) {
+            if (this.libertyCheck[x][y] === true && this.stoneAt(x, y) === c) {
               // console.log('Removing ' + x + '/' + y);
               this.position[x][y] = undefined;
               captures++;
@@ -147,10 +170,21 @@ export default class GameModel {
     }
     this.informListeners();
   }
+
+  nextPlayer() {
+    return (this.currentMove || this.initialBoardPosition).nextPlayer;
+  }
+
+  setNextPlayer(val) {
+    let m = (this.currentMove || this.initialBoardPosition);
+    m.nextPlayer = val;
+  }
+
   nextMove() {
     this.nextMoveInternal();
     this.informListeners();
   }
+
   back(num) {
     var lm = this.lastMoveNumber();
     var cm = this.currentMoveNumber();
@@ -181,13 +215,18 @@ export default class GameModel {
       }
     }
     for (let stone of this.currentMove.stones) {
-      // console.log('setting stone at ' + stone.x + '/' + stone.y);
-      // console.log('Was: ' + this.position[stone.x][stone.y]);
-      this.position[stone.x][stone.y] = stone.stoneType;
-      this.checkLiberties(stone.x - 1, stone.y, true);
-      this.checkLiberties(stone.x + 1, stone.y, true);
-      this.checkLiberties(stone.x, stone.y - 1, true);
-      this.checkLiberties(stone.x, stone.y + 1, true);
+      if (stone.stoneType === 'x') {
+        this.position[stone.x][stone.y] = undefined;
+      } else {
+        // console.log('setting stone at ' + stone.x + '/' + stone.y);
+        // console.log('Was: ' + this.position[stone.x][stone.y]);
+
+        this.position[stone.x][stone.y] = stone;
+        this.checkLiberties(stone.x - 1, stone.y, true);
+        this.checkLiberties(stone.x + 1, stone.y, true);
+        this.checkLiberties(stone.x, stone.y - 1, true);
+        this.checkLiberties(stone.x, stone.y + 1, true);
+      }
     }
     return this.currentMove;
   }
@@ -197,7 +236,7 @@ export default class GameModel {
   allowStoneAt() {
     return false;
   }
-  stoneAt(x, y) {
+  stoneAt(x, y, stoneObj = false) {
     if (this.position === undefined) {
       return this.undefined;
     }
@@ -208,12 +247,18 @@ export default class GameModel {
       return undefined;
     }
 
-    return this.position[x][y];
+    if (stoneObj) {
+      return this.position[x][y] && this.position[x][y];
+    } else {
+      return this.position[x][y] && this.position[x][y].stoneType;
+    }
   }
+
   currentMoveNumber() {
     if (this.currentMove === undefined) { return 0; }
     return this.currentMove.moveNumber;
   }
+
   lastMoveNumber() {
     if (this.lastMove === undefined) { return 0; }
     return this.lastMove.moveNumber;

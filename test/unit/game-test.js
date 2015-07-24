@@ -24,6 +24,7 @@ describe('Ear-reddening game', () => {
     // have been any.
     it(`should be correct up to move 111`, () => {
       model.goToMove(111);
+      expect(model.currentMoveNumber()).to.equal(111);
       //model.logPosition();
       expect(model.stoneAt(11, 1)).to.equal('b');
       expect(model.stoneAt(12, 1)).to.equal('w');
@@ -33,6 +34,7 @@ describe('Ear-reddening game', () => {
     });
     it(`should be correct up to move 112`, () => {
       model.nextMove();
+      expect(model.currentMoveNumber()).to.equal(112);
       //model.logPosition();
       expect(model.stoneAt(11, 1)).to.equal('b');
       expect(model.stoneAt(12, 1)).to.equal('w');
@@ -43,6 +45,7 @@ describe('Ear-reddening game', () => {
     it(`should be correct up to move 208`, () => {
       model.goToMove(208);
       // model.logPosition();
+      expect(model.currentMoveNumber()).to.equal(208);
       expect(model.stoneAt(15, 0)).to.be.undefined;
       expect(model.stoneAt(16, 0)).to.equal('w');
       expect(model.stoneAt(17, 0)).to.be.undefined;
@@ -53,6 +56,7 @@ describe('Ear-reddening game', () => {
     it(`should be correct up to move 209`, () => {
       model.nextMove();
       // model.logPosition();
+      expect(model.currentMoveNumber()).to.equal(209);
       expect(model.stoneAt(15, 0)).to.be.undefined;
       expect(model.stoneAt(16, 0)).to.equal('w');
       expect(model.stoneAt(17, 0)).to.equal('b');

@@ -3,9 +3,8 @@ import SGFParser from '../../src/sgfparser';
 
 /* eslint-disable no-unused-expressions,no-loop-func */
 
-describe('Capturing tests', function() {
-  describe('Basic capturing test', function() {
-    beforeEach(() => {});
+describe('Capturing tests', () => {
+  describe('Basic capturing test', () => {
     var model = new GameModel();
 
     var parser = new SGFParser(model);
@@ -41,7 +40,7 @@ describe('Capturing tests', function() {
     });
   });
 
-  describe('Ladder capturing test', function() {
+  describe('Ladder capturing test', () => {
     beforeEach(() => {});
     var model = new GameModel();
 

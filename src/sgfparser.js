@@ -1,16 +1,21 @@
 class SGFParser {
   constructor(model) {
-    this.entryre = new RegExp('([A-Z]+)\\[([^\\]]*)\\]', 'g');
+    this.entryre = new RegExp('([A-Z]+)((\\[[^\\]]*\\])*)', 'g');
+    this.valuere = new RegExp('\\[([^\\]]*)\\]', 'g');
     this.dimension = 19; // default assumption ...
     this.alpha = 'abcdefghijklmnopqrstuvwxyz';
     this.model = model;
   }
 
-  addMove(str, colour) {
+  addMove(str, colour, comment = undefined, addToCurrent = false) {
     var x = this.alpha.indexOf(str[0]);
     var y = this.alpha.indexOf(str[1]);
 
-    this.model.addMove(x, y, colour);
+    if (addToCurrent) {
+      this.model.addMove(x, y, colour, comment, true);
+    } else {
+      this.model.addMove(x, y, colour);
+    }
   }
 
   handleKeyValue(a, b) {
@@ -50,18 +55,20 @@ class SGFParser {
       this.model.gameInfo.copyright = b;
       // } else if (a === 'FF') {
       // File Format - don't need to do anything I guess ;-)
-      // } else if (a === 'AB') {
-      // TODO - setup placement correctly
-      // } else if (a === 'AW') {
-      // TODO - setup placement correctly
+    } else if (a === 'AB') { // Add black stone (e.g. handicap stone)
+      this.addMove(b, 'b', undefined, true);
+    } else if (a === 'AW') {
+      this.addMove(b, 'w', undefined, true);
+    } else if (a === 'AE') { // clear stone at ...
+      this.addMove(b, 'x', undefined, true);
+    } else if (a === 'PL') { // next player
+      this.model.setNextPlayer(b.toLowerCase());
     } else if (a === 'B') {
       this.cmove = this.addMove(b, 'b');
     } else if (a === 'W') {
       this.cmove = this.addMove(b, 'w');
     } else if (a === 'C') {
-      if (this.cmove !== undefined) {
-        this.cmove.comment = b;
-      } // FIXME: else it's the comment on 'move zero' (empty move)
+      this.model.addComment(b);
       // } else if (a === 'ST') {
       // FIXME - see http://www.red-bean.com/sgf/properties.html#ST
       // } else {
@@ -71,12 +78,22 @@ class SGFParser {
     // console.log('=> ' +result[1] + ' ' + result[2]);
   }
 
+  handleKeyValues(a, b) {
+    let result;
+    let count = 0;
+    while ((result = this.valuere.exec(b))) {
+      count++;
+      this.handleKeyValue(a, result[1]);
+    }
+  }
+
   parse(data) {
     data.split(';').map(l => {
       let result;
       while ((result = this.entryre.exec(l))) {
-        this.handleKeyValue(result[1], result[2]);
+        this.handleKeyValues(result[1], result[2]);
       }
+      this.model.resetPosition();
     });
     if (this.callbackFunction !== undefined) {
       this.callbackFunction();
