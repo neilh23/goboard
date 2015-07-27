@@ -208,7 +208,7 @@ export default class GoBoard {
       } else {
         ctx.fillStyle = '#444444';
       }
-      ctx.fillText(`${i + 1}`, 2, Math.floor(v + p.zw / 12) + 0.5);
+      ctx.fillText(`${dim - i}`, 2, Math.floor(v + p.zw / 12) + 0.5);
     }
     ctx.closePath();
   }
