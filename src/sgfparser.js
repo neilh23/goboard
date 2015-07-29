@@ -1,10 +1,9 @@
 class SGFParser {
   constructor(model) {
-    this.entryre = new RegExp('([A-Z]+)((\\[[^\\]]*\\])*)', 'g');
-    this.valuere = new RegExp('\\[([^\\]]*)\\]', 'g');
     this.dimension = 19; // default assumption ...
     this.alpha = 'abcdefghijklmnopqrstuvwxyz';
     this.model = model;
+    this.state = 'Start';
   }
 
   addMove(str, colour, comment = undefined, addToCurrent = false) {
@@ -19,6 +18,7 @@ class SGFParser {
   }
 
   handleKeyValue(a, b) {
+    // console.log(`Keyvalue ${a}/${b}`);
     // http://senseis.xmp.net/?SmartGameFormat
     if (a === 'SZ') {
       this.model.setDimension(parseInt(b));
@@ -78,25 +78,76 @@ class SGFParser {
     // console.log('=> ' +result[1] + ' ' + result[2]);
   }
 
-  handleKeyValues(a, b) {
-    let result;
-    let count = 0;
-    while ((result = this.valuere.exec(b))) {
-      count++;
-      this.handleKeyValue(a, result[1]);
+  parseStart(c) {
+    this.state = 'Body';
+    if (c.match(/\s|\(/)) { return; }
+    console.log(`START: unexpected '${c}'`);
+    this.parseBody(c);
+  }
+
+  parseBody(c) {
+    if (c.match(/\s/)) {
+      return;
+    } else if (c.match(/[A-Z]/)) {
+      this.property = c;
+      this.state = 'Property';
+    } else if (c === '[') {
+      if (this.property !== undefined) {
+        this.state = 'Value'; // re-parse as same property as last
+        this.value = '';
+      }
+    } else if (c === ';') {
+      // FIXME: close off current move
+      this.property = undefined;
+    } else if (c === '(') {
+      this.model.pushBranch();
+    } else if (c === ')') {
+      this.model.popBranch();
     }
   }
 
-  parse(data) {
-    data.split(';').map(l => {
-      let result;
-      while ((result = this.entryre.exec(l))) {
-        this.handleKeyValues(result[1], result[2]);
-      }
+  parseProperty(c) {
+    if (c.match(/[A-Z]/)) {
+      this.property += c;
+    } else if (!c.match(/\s|\[/)) {
+      console.log(`PROPERTY: unexpected '${c}'`);
+    } else if (c === '[') {
+      this.value = '';
+      this.state = 'Value';
+    }
+  }
+
+  parseValue(c) {
+    if (c === ']') {
+      this.handleKeyValue(this.property, this.value);
+      this.state = 'Body';
+      return;
+    }
+    if (c === '\\') {
+      this.state = 'EscapeValue';
+    }
+    this.value += c;
+  }
+
+  parseEscapeValue(c) {
+    if (c.match(/[\n\r]/)) { c = ' '; } // soft line break
+    this.value += c;
+    this.state = 'Value';
+  }
+
+  parseChar(c) {
+    // console.log(`${this.state} -> '${c}'`);
+    this['parse' + this.state](c);
+  }
+
+  parse(data, eof=true) {
+    for (var i in data) { this.parseChar(data[i]); }
+
+    if (eof) {
       this.model.resetPosition();
-    });
-    if (this.callbackFunction !== undefined) {
-      this.callbackFunction();
+      if (this.callbackFunction !== undefined) {
+        this.callbackFunction();
+      }
     }
   }
 
@@ -111,12 +162,11 @@ class SGFParser {
     xmlhttp.send();
 
     xmlhttp.onreadystatechange = () => {
-      if (xmlhttp.readyState !== 4) { return; }
       if (xmlhttp.status !== 200) {
-        // window.alert('Couldn't get url: ' + sgfurl);
+        // window.alert("Couldn't get url: " + sgfurl);
         return;
       }
-      this.parse(xmlhttp.responseText);
+      this.parse(xmlhttp.responseText, (xmlhttp.readyState === 4));
     };
   }
 }

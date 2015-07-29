@@ -9,14 +9,30 @@ export default class Move {
     }
     this.stones = stones;
     this.comment = comment;
-    this.nextMoves = new Set();
+    this.nextMoves = [];
+
     if (previousMove === undefined) {
       this.branch = 0;
       this.moveNumber = 0; // assume this is the initial position
     } else {
-      this.branch = previousMove.branch;
+      // console.log(`Add move ${previousMove.branch}/${previousMove.nextMoves.length}`);
+      if (previousMove.nextMoves.length > 0) {
+        if (Move.maxBranch === undefined) {
+          this.branch = 1;
+          Move.maxBranch = 1;
+        } else {
+          Move.maxBranch++;
+          this.branch = Move.maxBranch;
+        }
+
+        // console.log(`Adding new branch ${this.branch}`);
+      } else {
+        this.branch = previousMove.branch;
+        previousMove.nextMoveChoice = this;
+      }
+
       this.moveNumber = previousMove.moveNumber + 1;
-      previousMove.nextMoves.add(this);
+      previousMove.nextMoves.push(this);
     }
 
     for (let stone of stones) { stone.move = this; }

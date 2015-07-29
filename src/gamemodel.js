@@ -13,11 +13,14 @@ export default class GameModel {
     this.dimension = 19; // default
     this.blackCaptures = 0;
     this.whiteCaptures = 0;
+    this.branchPoints = {};
+    this.branchStack = [];
+    this.currentBranch = 0;
   }
 
   // handy little function ...
   logPosition() {
-    console.log(`Move: ${this.currentMoveNumber()}`);
+    console.log(`Move: ${this.currentMoveNumber()} Branch ${this.currentBranchNumber()}`);
     if (this.dimension !== 19) {
       console.log(`ERROR: position logging currently only for 19x19 (${this.dimension})`);
       return;
@@ -45,13 +48,27 @@ export default class GameModel {
       move = this.lastMove || this.initialBoardPosition;
       move.addStone(stone);
     } else {
-      move = new Move(this.lastMove || this.initialBoardPosition, [stone], comment);
+      let lm = (this.lastMove || this.initialBoardPosition);
+      move = new Move(lm, [stone], comment);
       if (this.firstMove === undefined) {
         this.firstMove = move;
+      }
+      if (move.branch !== lm.branch) {
+        this.branchPoints[move.branch] = move;
       }
     }
     this.lastMove = move;
     return move;
+  }
+
+  pushBranch() {
+    this.branchStack.push({lastMove: this.lastMove});
+  }
+
+  popBranch() {
+    var c = this.branchStack.pop();
+    if (c === undefined) { return; }
+    this.lastMove = c.lastMove;
   }
 
   addComment(comment) {
@@ -151,9 +168,20 @@ export default class GameModel {
     return false;
   }
 
-  goToMove(moveNum) {
+  goToMove(moveNum, branch = undefined) {
     this.resetPosition();
-    if ((moveNum || 0) === 0 || this.lastMove === undefined) {
+    if (branch !== undefined) {
+      // force the move chain to come to this branch
+      let x = this.branchPoints[branch];
+      if (x === undefined) { throw `no such branch: ${branch}`; }
+
+      let y;
+      while ((y = x.previousMove) !== undefined) {
+        y.nextMoveChoice = x;
+        x = y;
+      }
+    }
+    if ((moveNum || 0) === 0 || this.firstMove === undefined) {
       // console.log('goToMove - no doing anything move ' + moveNum + ' lm ' + this.lastMove);
       this.informListeners();
       return;
@@ -161,9 +189,10 @@ export default class GameModel {
 
     // if moveNum is < 0, then '-1' is the last move, -2 is the last-but-one move
     if (moveNum < 0) {
-      moveNum = Math.max(0, this.lastMove.moveNumber + (1 + moveNum));
+      moveNum = Math.max(0, this.lastMoveNumber() + (1 + moveNum));
     }
-    moveNum = Math.min(moveNum, this.lastMove.moveNumber);
+    // moveNum = Math.min(moveNum, this.lastMove.moveNumber);
+    moveNum = Math.min(moveNum, 1000); // limit to 1000 moves, don't think there's any game above that ...
     // console.log('Going to move ' + moveNum);
     for (let i = 0; i < moveNum; i++) {
       this.nextMoveInternal();
@@ -180,8 +209,8 @@ export default class GameModel {
     m.nextPlayer = val;
   }
 
-  nextMove() {
-    this.nextMoveInternal();
+  nextMove(branch = undefined) {
+    this.nextMoveInternal(branch);
     this.informListeners();
   }
 
@@ -195,24 +224,25 @@ export default class GameModel {
       this.nextMove();
     }
   }
-  nextMoveInternal() {
+  nextMoveInternal(branch = undefined) {
     if (this.position === undefined) { return undefined; }
     if (this.currentMove === undefined) {
       if (this.firstMove === undefined) { return undefined; }
       this.currentMove = this.firstMove;
     } else {
-      let nm = this.currentMove.nextMoves;
-      if (nm === undefined || nm.size === 0) {
+      let nm = this.currentMove.nextMoveChoice;
+
+      if (branch !== undefined) {
+        for (let mv of this.currentMove.nextMoves) {
+          if (mv.branch === branch) { nm = mv; }
+        }
+      }
+
+      if (nm === undefined) {
         return this.currentMove;
       }
 
-      let branch = this.currentMove.branch;
-      for (let move of nm) {
-        if (move.branch === branch) {
-          this.currentMove = move;
-          break;
-        }
-      }
+      this.currentMove = nm;
     }
     for (let stone of this.currentMove.stones) {
       if (stone.stoneType === 'x') {
@@ -259,8 +289,19 @@ export default class GameModel {
     return this.currentMove.moveNumber;
   }
 
+  currentBranchNumber() {
+    if (this.currentMove === undefined) { return 0; }
+    return this.currentMove.branch;
+  }
+
   lastMoveNumber() {
-    if (this.lastMove === undefined) { return 0; }
-    return this.lastMove.moveNumber;
+    let c = this.firstMove;
+    if (c === undefined) { return 0; }
+    let rv = 0;
+    while ((c = c.nextMoveChoice) !== undefined) {
+      rv = c.moveNumber;
+    }
+
+    return rv;
   }
 }
