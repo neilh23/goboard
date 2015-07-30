@@ -49,7 +49,7 @@ export default class GoBoard {
       var y1 = y - (p.zw / 6);
       var y2 = y + (p.zw / 6);
 
-      console.log(`isCurrent ${x},${y} , ${x1}-${x2}, ${y1}-${y2} `);
+      // console.log(`isCurrent ${x},${y} , ${x1}-${x2}, ${y1}-${y2} `);
 
       ctx.moveTo(x1, y); ctx.lineTo(x2, y);
       ctx.moveTo(x, y1); ctx.lineTo(x, y2);
@@ -264,9 +264,9 @@ export default class GoBoard {
         case 35: this.model.goToMove(-1); break; // end
         case 36: this.model.goToMove(0); break; // home
         case 37: this.model.back(1); break; // left
-        case 38: this.model.forward(10); break; // up
+        case 38: this.model.changeBranch(true); break; // up
         case 39: this.model.forward(1); break; // right
-        case 40: this.model.back(10); break; // down
+        case 40: this.model.changeBranch(false); break; // down
       }
     });
   }
@@ -293,5 +293,16 @@ export default class GoBoard {
       }
     }
     window.gocounter.innerText = '' + this.model.currentMoveNumber();
+    if (this.model.canChangeBranch(true)) {
+      window.buttonbdown.style.color = '#000000';
+    } else {
+      window.buttonbdown.style.color = '#555555';
+    }
+
+    if (this.model.canChangeBranch(false)) {
+      window.buttonbup.style.color = '#000000';
+    } else {
+      window.buttonbup.style.color = '#555555';
+    }
   }
 }

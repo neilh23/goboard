@@ -52,6 +52,7 @@ export default class GameModel {
       move = new Move(lm, [stone], comment);
       if (this.firstMove === undefined) {
         this.firstMove = move;
+        this.branchPoints[0] = move;
       }
       if (move.branch !== lm.branch) {
         this.branchPoints[move.branch] = move;
@@ -175,7 +176,16 @@ export default class GameModel {
       let x = this.branchPoints[branch];
       if (x === undefined) { throw `no such branch: ${branch}`; }
 
-      let y;
+      let y = x;
+
+      while (y !== undefined && y.moveNumber < moveNum) {
+        for (let k of y.nextMoves) {
+          if (k.branch === branch) {
+            y.nextMoveChoice = k;
+          }
+        }
+        y = y.nextMoveChoice;
+      }
       while ((y = x.previousMove) !== undefined) {
         y.nextMoveChoice = x;
         x = y;
@@ -212,6 +222,46 @@ export default class GameModel {
   nextMove(branch = undefined) {
     this.nextMoveInternal(branch);
     this.informListeners();
+  }
+
+  changeBranch(up) {
+    var cm = this.currentMove;
+    if (cm === undefined) {
+      console.log('No cm');
+      return;
+    }
+    var cb = cm.branch;
+    var lm = cm.previousMove;
+    if (lm === undefined) {
+      console.log('No lm');
+      return;
+    }
+
+    // console.log(`in changeBranch ${up}  - branch is ${cm.branch}`);
+
+    var tbranch;
+
+    // console.log(`Iterating over ${lm.nextMoves.length} moves`);
+    for (let mv of lm.nextMoves) {
+      // console.log(`mv ${mv.branch} - current ${cb}`);
+      if (up) {
+        if (mv.branch < (tbranch || cb)) {
+          tbranch = mv.branch;
+          // console.log(`Set ${tbranch}`);
+        }
+      } else {
+        if (mv.branch > (tbranch || cb)) {
+          tbranch = mv.branch;
+          // console.log(`Set ${tbranch}`);
+        }
+      }
+    }
+
+    if (tbranch !== undefined) {
+      // console.log(`Going to ${cm.moveNumber}/${tbranch}`);
+      this.goToMove(cm.moveNumber, tbranch);
+      // console.log(`Current branch now ${this.currentBranchNumber()}`);
+    }
   }
 
   back(num) {
@@ -303,5 +353,21 @@ export default class GameModel {
     }
 
     return rv;
+  }
+
+  canChangeBranch(up) {
+    var cm = this.currentMove;
+    if (cm === undefined) { return false; }
+    var pm = this.currentMove.previousMove;
+    if (pm === undefined) { return false; }
+    for (let m of pm.nextMoves) {
+      if (up) {
+        // note - 'up' here means going to a lower-numbered branch ...
+        if (m.branch < cm.branch) { return true; }
+      } else {
+        if (m.branch > cm.branch) { return true; }
+      }
+    }
+    return false;
   }
 }

@@ -14,6 +14,9 @@ describe('Branch tests', () => {
       expect(model.stoneAt(15, 3)).to.equal('b');
       expect(model.currentMoveNumber()).to.equal(1);
       expect(model.currentBranchNumber()).to.equal(0); // main branch
+      expect(model.currentBranchNumber()).to.equal(0); // main branch
+      expect(model.canChangeBranch(true)).to.be.false;
+      expect(model.canChangeBranch(false)).to.be.false;
       // expect(model.getBranches().length).to.equal(1);
     });
 
@@ -24,6 +27,8 @@ describe('Branch tests', () => {
       expect(model.stoneAt(13, 2)).to.equal('b');
       expect(model.currentMoveNumber()).to.equal(3);
       expect(model.currentBranchNumber()).to.equal(0); // main branch
+      expect(model.canChangeBranch(true)).to.be.false;
+      expect(model.canChangeBranch(false)).to.be.true;
       // expect(model.getBranches().length).to.equal(2);
     });
 
@@ -49,7 +54,22 @@ describe('Branch tests', () => {
       expect(model.stoneAt(13, 3)).to.equal('b');
       expect(model.currentMoveNumber()).to.equal(3);
       expect(model.currentBranchNumber()).to.equal(1); // alt branch
+      expect(model.canChangeBranch(true)).to.be.true;
+      expect(model.canChangeBranch(false)).to.be.false;
+
       // expect(model.getBranches().length).to.equal(2);
+    });
+
+    it(`should go to switch branch up from branch 1 to branch 0 correctly`, () => {
+      model.changeBranch(true);
+      expect(model.stoneAt(13, 3)).to.be.undefined;
+      expect(model.stoneAt(13, 2)).to.equal('b');
+    });
+
+    it(`should go to switch branch down from branch 0 to branch 1 correctly`, () => {
+      model.changeBranch(false);
+      expect(model.stoneAt(13, 3)).to.equal('b');
+      expect(model.stoneAt(13, 2)).to.be.undefined;
     });
 
     it(`should maintain branch 1 correctly`, () => {
@@ -63,6 +83,8 @@ describe('Branch tests', () => {
 
       expect(model.currentMoveNumber()).to.equal(7);
       expect(model.currentBranchNumber()).to.equal(1); // alt branch
+      expect(model.canChangeBranch(true)).to.be.false;
+      expect(model.canChangeBranch(false)).to.be.false;
       // expect(model.getBranches().length).to.equal(2);
     });
   });
