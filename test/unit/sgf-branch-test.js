@@ -89,4 +89,37 @@ describe('Branch tests', () => {
     });
   });
 
+  describe('Advanced branch test 1', () => {
+    var model = new GameModel();
+
+    var parser = new SGFParser(model);
+    parser.parse('(;FF[4]KM[6.5]DT[2015-07-30](;B[pd](;W[qf](;B[nd])(;B[nc]))(;W[qg]))(;B[qd](;W[oc](;B[pf])(;B[mc]))(;W[od](;B[oc];W[nc];B[pc];W[md];B[pf])(;B[mc];W[qc];B[qg];W[pd];B[rd]))))');
+
+    it(`should parse root move correctly`, () => {
+      expect(model.currentMoveNumber()).to.equal(0);
+      expect(model.currentBranchNumber()).to.equal(0); // main branch
+      expect(model.canChangeBranch(true)).to.be.false;
+      expect(model.canChangeBranch(false)).to.be.false;
+    });
+
+    it(`should parse move 1, branch 0 correctly`, () => {
+      model.goToMove(1);
+      // model.logPosition();
+      expect(model.stoneAt(15, 3)).to.equal('b');
+      expect(model.stoneAt(16, 3)).to.be.undefined;
+      expect(model.currentMoveNumber()).to.equal(1);
+      expect(model.currentBranchNumber()).to.equal(0); // main branch
+      expect(model.canChangeBranch(true)).to.be.false;
+      expect(model.canChangeBranch(false)).to.be.true;
+    });
+
+    it(`should parse move 1, branch 1 correctly`, () => {
+      model.changeBranch(false);
+      expect(model.stoneAt(15, 3)).to.be.undefined;
+      expect(model.stoneAt(16, 3)).to.equal('b');
+      expect(model.canChangeBranch(true)).to.be.true;
+      expect(model.canChangeBranch(false)).to.be.false;
+    });
+  });
+
 });

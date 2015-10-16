@@ -10,7 +10,6 @@ describe('Handicap stones tests', () => {
     var parser = new SGFParser(model);
     parser.parse('(;KM[6.5]DT[2015-07-13]HA[5]AB[dd][pd][dp][pp]PL[W];W[qf])');
 
-    // model.logPosition();
     it('should be at move 0', () => {
       expect(model.currentMoveNumber()).to.equal(0);
     });
@@ -37,6 +36,7 @@ describe('Handicap stones tests', () => {
     it('should have placed the first move', () => {
       expect(model.stoneAt(16, 5)).to.equal('w');
     });
+
     it('should expect a black move next', () => {
       expect(model.nextPlayer()).to.equal('b');
     });

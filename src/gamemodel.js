@@ -4,10 +4,11 @@ import GameInfo from './gameinfo';
 
 export default class GameModel {
   constructor() {
-    this.initialBoardPosition = new Move(undefined, []);
-    this.firstMove = undefined;
-    this.lastMove = undefined;
-    this.currentMove = undefined;
+    this.rootMove = new Move(undefined, []);
+    this.rootMove.moveNumber = -1;
+    this.lastMove = new Move(this.rootMove, []);
+    this.currentMove = this.lastMove;
+    this.zeroMove = this.lastMove;
     this.gameInfo = new GameInfo();
     this.moveListeners = new Set();
     this.dimension = 19; // default
@@ -20,7 +21,7 @@ export default class GameModel {
 
   // handy little function ...
   logPosition() {
-    console.log(`Move: ${this.currentMoveNumber()} Branch ${this.currentBranchNumber()}`);
+    console.log(`Move: ${this.currentMoveNumber()} Branch ${this.currentBranchNumber()} Next ${this.nextPlayer()}`);
     if (this.dimension !== 19) {
       console.log(`ERROR: position logging currently only for 19x19 (${this.dimension})`);
       return;
@@ -41,15 +42,24 @@ export default class GameModel {
     }
   }
 
+  logTree() {
+    let x = this.rootMove;
+    while (x !== undefined) {
+      console.log(`x ${x.moveNumber} nxt ${x.nextPlayer}`);
+      x = x.nextMoves[0];
+    }
+  }
+
   addMove(x, y, color, comment, addToCurrent) {
     var stone = new Stone(x, y, color);
     var move;
     if (addToCurrent) {
-      move = this.lastMove || this.initialBoardPosition;
+      move = this.lastMove || this.rootMove;
       move.addStone(stone);
     } else {
-      let lm = (this.lastMove || this.initialBoardPosition);
+      let lm = (this.lastMove || this.rootMove);
       move = new Move(lm, [stone], comment);
+
       if (this.firstMove === undefined) {
         this.firstMove = move;
         this.branchPoints[0] = move;
@@ -73,7 +83,7 @@ export default class GameModel {
   }
 
   addComment(comment) {
-    var move = this.lastMove || this.initialBoardPosition;
+    var move = this.lastMove || this.rootMove;
 
     move.comment = comment;
   }
@@ -98,8 +108,12 @@ export default class GameModel {
     this.blackCaptures = 0;
     this.whiteCaptures = 0;
 
-    for (let stone of this.initialBoardPosition.stones) {
-      this.position[stone.x][stone.y] = stone;
+    let initial = this.rootMove.nextMoveChoice;
+
+    if (initial !== undefined) {
+      for (let stone of initial.stones) {
+        this.position[stone.x][stone.y] = stone;
+      }
     }
 
     // console.log(`ResetPosition, movenumber now: ${this.currentMoveNumber()}`);
@@ -211,12 +225,11 @@ export default class GameModel {
   }
 
   nextPlayer() {
-    return (this.currentMove || this.initialBoardPosition).nextPlayer;
+    return (this.currentMove || this.zeroMove).nextPlayer;
   }
 
   setNextPlayer(val) {
-    let m = (this.currentMove || this.initialBoardPosition);
-    m.nextPlayer = val;
+    (this.currentMove || this.zeroMove).nextPlayer = val;
   }
 
   nextMove(branch = undefined) {
@@ -276,6 +289,7 @@ export default class GameModel {
   }
   nextMoveInternal(branch = undefined) {
     if (this.position === undefined) { return undefined; }
+
     if (this.currentMove === undefined) {
       if (this.firstMove === undefined) { return undefined; }
       this.currentMove = this.firstMove;
@@ -345,7 +359,7 @@ export default class GameModel {
   }
 
   lastMoveNumber() {
-    let c = this.firstMove;
+    let c = this.rootMove;
     if (c === undefined) { return 0; }
     let rv = 0;
     while ((c = c.nextMoveChoice) !== undefined) {

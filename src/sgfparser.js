@@ -4,6 +4,7 @@ class SGFParser {
     this.alpha = 'abcdefghijklmnopqrstuvwxyz';
     this.model = model;
     this.state = 'Start';
+    this.AToZ = /[A-Z]/;
   }
 
   addMove(str, colour, comment = undefined, addToCurrent = false) {
@@ -80,21 +81,23 @@ class SGFParser {
 
   parseStart(c) {
     this.state = 'Body';
-    if (c.match(/\s|\(/)) { return; }
+
+    if (c === '(' || c === ' ' || c === '\n' || c === '\r') { return; }
     console.log(`START: unexpected '${c}'`);
     this.parseBody(c);
   }
 
   parseBody(c) {
-    if (c.match(/\s/)) {
+    if (c === ' ' || c === '\n' || c === '\r') {
       return;
-    } else if (c.match(/[A-Z]/)) {
+    } else if (this.AToZ.test(c)) {
       this.property = c;
       this.state = 'Property';
     } else if (c === '[') {
       if (this.property !== undefined) {
         this.state = 'Value'; // re-parse as same property as last
-        this.value = '';
+        // value is an array - we then construct with join (see https://developers.google.com/speed/articles/optimizing-javascript
+        this.value = [];
       }
     } else if (c === ';') {
       // FIXME: close off current move
@@ -107,31 +110,33 @@ class SGFParser {
   }
 
   parseProperty(c) {
-    if (c.match(/[A-Z]/)) {
+    if (this.AToZ.test(c)) {
       this.property += c;
-    } else if (!c.match(/\s|\[/)) {
-      console.log(`PROPERTY: unexpected '${c}'`);
     } else if (c === '[') {
-      this.value = '';
+      this.value = [];
       this.state = 'Value';
+    } else if (c === ' ' || c === '\n' || c === '\r') /*eslint-disable no-empty */ {
+      // nop
+    } /*eslint-enable no-empty*/ else {
+      console.log(`PROPERTY: unexpected '${c}'`);
     }
   }
 
   parseValue(c) {
     if (c === ']') {
-      this.handleKeyValue(this.property, this.value);
+      this.handleKeyValue(this.property, this.value.join(''));
       this.state = 'Body';
       return;
     }
     if (c === '\\') {
       this.state = 'EscapeValue';
     }
-    this.value += c;
+    this.value.push(c);
   }
 
   parseEscapeValue(c) {
-    if (c.match(/[\n\r]/)) { c = ' '; } // soft line break
-    this.value += c;
+    if (c === '\n' || c === '\r') { c = ' '; } // soft line break
+    this.value.push(c);
     this.state = 'Value';
   }
 

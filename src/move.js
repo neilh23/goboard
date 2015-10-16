@@ -2,11 +2,23 @@ export default class Move {
   constructor(previousMove, stones, comment) {
     this.previousMove = previousMove;
 
-    if (previousMove && previousMove.nextPlayer === 'b') {
-      this.nextPlayer = 'w';
+    // moves below 0 aren't real
+    if (previousMove) {
+      if (previousMove.moveNumber < 0) {
+        this.nextPlayer = previousMove.nextPlayer; // last move wasn't real
+      } else {
+        if (previousMove.nextPlayer === 'b') {
+          this.nextPlayer = 'w';
+        } else {
+          this.nextPlayer = 'b';
+        }
+      }
+      // console.log(`move ${previousMove.moveNumber} -> ${previousMove.nextPlayer} -> ${this.nextPlayer}`);
     } else {
+      // console.log('move 0 -> b');
       this.nextPlayer = 'b'; // default to 'b'
     }
+
     this.stones = stones;
     this.comment = comment;
     this.nextMoves = [];
