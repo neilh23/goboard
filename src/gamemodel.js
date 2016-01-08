@@ -111,6 +111,7 @@ export default class GameModel {
     let initial = this.rootMove.nextMoveChoice;
 
     if (initial !== undefined) {
+      this.firstMove = initial.nextMoveChoice;
       for (let stone of initial.stones) {
         this.position[stone.x][stone.y] = stone;
       }
@@ -184,7 +185,6 @@ export default class GameModel {
   }
 
   goToMove(moveNum, branch = undefined) {
-    this.resetPosition();
     if (branch !== undefined) {
       // force the move chain to come to this branch
       let x = this.branchPoints[branch];
@@ -192,10 +192,11 @@ export default class GameModel {
 
       let y = x;
 
-      while (y !== undefined && y.moveNumber < moveNum) {
+      while (y !== undefined && y.moveNumber <= moveNum) {
         for (let k of y.nextMoves) {
           if (k.branch === branch) {
             y.nextMoveChoice = k;
+            break;
           }
         }
         y = y.nextMoveChoice;
@@ -205,6 +206,9 @@ export default class GameModel {
         x = y;
       }
     }
+
+    this.resetPosition();
+
     if ((moveNum || 0) === 0 || this.firstMove === undefined) {
       // console.log('goToMove - no doing anything move ' + moveNum + ' lm ' + this.lastMove);
       this.informListeners();
@@ -245,35 +249,28 @@ export default class GameModel {
     }
     var cb = cm.branch;
     var lm = cm.previousMove;
+
     if (lm === undefined) {
       console.log('No lm');
       return;
     }
 
-    // console.log(`in changeBranch ${up}  - branch is ${cm.branch}`);
-
     var tbranch;
 
-    // console.log(`Iterating over ${lm.nextMoves.length} moves`);
     for (let mv of lm.nextMoves) {
-      // console.log(`mv ${mv.branch} - current ${cb}`);
       if (up) {
         if (mv.branch < (tbranch || cb)) {
           tbranch = mv.branch;
-          // console.log(`Set ${tbranch}`);
         }
       } else {
         if (mv.branch > (tbranch || cb)) {
           tbranch = mv.branch;
-          // console.log(`Set ${tbranch}`);
         }
       }
     }
 
     if (tbranch !== undefined) {
-      // console.log(`Going to ${cm.moveNumber}/${tbranch}`);
       this.goToMove(cm.moveNumber, tbranch);
-      // console.log(`Current branch now ${this.currentBranchNumber()}`);
     }
   }
 

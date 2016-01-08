@@ -117,8 +117,20 @@ describe('Branch tests', () => {
       model.changeBranch(false);
       expect(model.stoneAt(15, 3)).to.be.undefined;
       expect(model.stoneAt(16, 3)).to.equal('b');
+      expect(model.currentMoveNumber()).to.equal(1);
+      expect(model.currentBranchNumber()).to.not.equal(0); // not the main branch
       expect(model.canChangeBranch(true)).to.be.true;
       expect(model.canChangeBranch(false)).to.be.false;
+    });
+
+    it(`should go back to move 1, branch 0 correctly`, () => {
+      model.changeBranch(true);
+      expect(model.stoneAt(15, 3)).to.equal('b');
+      expect(model.stoneAt(16, 3)).to.be.undefined;
+      expect(model.currentMoveNumber()).to.equal(1);
+      expect(model.currentBranchNumber()).to.equal(0); // main branch
+      expect(model.canChangeBranch(true)).to.be.false;
+      expect(model.canChangeBranch(false)).to.be.true;
     });
   });
 
