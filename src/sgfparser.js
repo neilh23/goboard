@@ -21,60 +21,36 @@ class SGFParser {
   handleKeyValue(a, b) {
     // console.log(`Keyvalue ${a}/${b}`);
     // http://senseis.xmp.net/?SmartGameFormat
-    if (a === 'SZ') {
-      this.model.setDimension(parseInt(b));
-      // } else if (a === 'GM') {
-      // Game - should always be 1 ... assuming this for now
-    } else if (a === 'KM') {
-      this.model.gameInfo.komi = b;
-    } else if (a === 'PB') {
-      this.model.gameInfo.playerBlack = b;
-    } else if (a === 'PW') {
-      this.model.gameInfo.playerWhite = b;
-    } else if (a === 'RE') {
-      this.model.gameInfo.result = b;
-    } else if (a === 'BR') {
-      // FIXME - turn 'player' into an object
-      this.model.gameInfo.playerBlackRank = b;
-    } else if (a === 'WR') {
-      this.model.gameInfo.playerWhiteRank = b;
-    } else if (a === 'BT') {
-      this.model.gameInfo.playerBlackTeam = b;
-    } else if (a === 'WT') {
-      this.model.gameInfo.playerWhiteTeam = b;
-    } else if (a === 'PC') {
-      this.model.gameInfo.place = b;
-    } else if (a === 'DT') {
-      this.model.gameInfo.date = b;
-    } else if (a === 'HA') {
-      this.model.gameInfo.handicap = b;
-    } else if (a === 'RU') {
-      this.model.gameInfo.ruleSet = b;
-    } else if (a === 'AP') {
-      this.model.gameInfo.application = b;
-    } else if (a === 'CP') {
-      this.model.gameInfo.copyright = b;
-      // } else if (a === 'FF') {
-      // File Format - don't need to do anything I guess ;-)
-    } else if (a === 'AB') { // Add black stone (e.g. handicap stone)
-      this.addMove(b, 'b', undefined, true);
-    } else if (a === 'AW') {
-      this.addMove(b, 'w', undefined, true);
-    } else if (a === 'AE') { // clear stone at ...
-      this.addMove(b, 'x', undefined, true);
-    } else if (a === 'PL') { // next player
-      this.model.setNextPlayer(b.toLowerCase());
-    } else if (a === 'B') {
-      this.cmove = this.addMove(b, 'b');
-    } else if (a === 'W') {
-      this.cmove = this.addMove(b, 'w');
-    } else if (a === 'C') {
-      this.model.addComment(b);
-      // } else if (a === 'ST') {
-      // FIXME - see http://www.red-bean.com/sgf/properties.html#ST
-      // } else {
-      // console.log('Unknown ' + a + '/' + b);
 
+    switch (a) {
+      case 'B': this.cmove = this.addMove(b, 'b'); break;
+      case 'W': this.cmove = this.addMove(b, 'w'); break;
+      case 'C': this.model.addComment(b); break;
+      case 'LB': break; // FIXME: text on board
+      case 'SZ': this.model.setDimension(parseInt(b)); break;
+      // case 'GM': Game - should always be 1 ... assuming this for now
+      case 'KM': this.model.gameInfo.komi = b; break;
+      case 'PB': this.model.gameInfo.playerBlack = b; break;
+      case 'PW': this.model.gameInfo.playerWhite = b; break;
+      case 'RE': this.model.gameInfo.result = b; break;
+      // FIXME - turn 'player' into an object
+      case 'BR': this.model.gameInfo.playerBlackRank = b; break;
+      case 'WR': this.model.gameInfo.playerWhiteRank = b; break;
+      case 'BT': this.model.gameInfo.playerBlackTeam = b; break;
+      case 'WT': this.model.gameInfo.playerWhiteTeam = b; break;
+      case 'PC': this.model.gameInfo.place = b; break;
+      case 'DT': this.model.gameInfo.date = b; break;
+      case 'HA': this.model.gameInfo.handicap = b; break;
+      case 'RU': this.model.gameInfo.ruleSet = b; break;
+      case 'AP': this.model.gameInfo.application = b; break;
+      case 'CP': this.model.gameInfo.copyright = b; break;
+      // case 'FF': // File Format - don't need to do anything I guess ;-)
+      case 'AB': this.addMove(b, 'b', undefined, true); break;
+      case 'AW': this.addMove(b, 'w', undefined, true); break;
+      case 'AE': this.addMove(b, 'x', undefined, true); break;
+      case 'PL': this.model.setNextPlayer(b.toLowerCase()); break;
+      // case 'ST': // FIXME - see http://www.red-bean.com/sgf/properties.html#ST
+      // default: console.log('Unknown ' + a + '/' + b);
     }
     // console.log('=> ' +result[1] + ' ' + result[2]);
   }
@@ -167,11 +143,11 @@ class SGFParser {
     xmlhttp.send();
 
     xmlhttp.onreadystatechange = () => {
-      if (xmlhttp.status !== 200) {
+      if (xmlhttp.status !== 200 || xmlhttp.readyState !== 4) {
         // window.alert("Couldn't get url: " + sgfurl);
         return;
       }
-      this.parse(xmlhttp.responseText, (xmlhttp.readyState === 4));
+      this.parse(xmlhttp.responseText, true);
     };
   }
 }
