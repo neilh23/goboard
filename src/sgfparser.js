@@ -18,6 +18,20 @@ class SGFParser {
     }
   }
 
+  addLabel(str) {
+    if (str === undefined) {
+      console.log('Error: undefined passed to addLabel');
+      return;
+    }
+    var x = this.alpha.indexOf(str[0]);
+    var y = this.alpha.indexOf(str[1]);
+    var label = str.split(':')[1];
+
+    // console.log(`Adding label ${x}, ${y}: ${label}`);
+
+    this.model.addLabel(x, y, label);
+  }
+
   handleKeyValue(a, b) {
     // console.log(`Keyvalue ${a}/${b}`);
     // http://senseis.xmp.net/?SmartGameFormat
@@ -26,7 +40,7 @@ class SGFParser {
       case 'B': this.cmove = this.addMove(b, 'b'); break;
       case 'W': this.cmove = this.addMove(b, 'w'); break;
       case 'C': this.model.addComment(b); break;
-      case 'LB': break; // FIXME: text on board
+      case 'LB': this.addLabel(b); break;
       case 'SZ': this.model.setDimension(parseInt(b)); break;
       // case 'GM': Game - should always be 1 ... assuming this for now
       case 'KM': this.model.gameInfo.komi = b; break;

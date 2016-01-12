@@ -12,6 +12,7 @@
     <canvas id="goboardbase" width="500" height="500" style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
     <canvas id="goboarddecr" width="500" height="500" style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
     <canvas id="goboardstones" width="500" height="500" style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
+    <canvas id="goboardlabels" width="500" height="500" style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
     <div id="gocounter" style="position: absolute; left: 0; bottom: 0; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: moz-none; -ms-user-select: none; user-select: none;"></div>
     <div style="position: absolute; right: 0; bottom: 0; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: moz-none; -ms-user-select: none; user-select: none;">
         <i id="buttonstart" class="fa fa-fast-backward"></i>
@@ -27,9 +28,9 @@
     </div>
     <div id="gocomments" style="width: 345px; min-height: 150px; max-height: 500px; overflow: auto; position: relative; float: left; margin: 2px; border: 1px solid grey;"></div>
     <script>
-       createGoBoard({board: goboardbase, sgf: 'sgf/ShusakuvsInseki.sgf'});
+       // createGoBoard({board: goboardbase, sgf: 'sgf/ShusakuvsInseki.sgf'});
         // Kogo's joseki dictionary - download from http://waterfire.us/joseki.htm
-       // createGoBoard({board: goboardbase, sgf: 'sgf/Kogos.sgf', move: 0});
+       createGoBoard({board: goboardbase, sgf: 'sgf/Kogos.sgf', move: 0});
     </script>
 </body>
 

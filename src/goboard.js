@@ -59,6 +59,46 @@ export default class GoBoard {
     }
   }
 
+  drawLabel(x, y, label) {
+    console.log(`Drawing label ${label} at ${x}, ${y}`);
+    var el = window.goboardlabels;
+    var ctx = el.getContext('2d');
+    var p = this.goParams;
+
+    if (this.model.stoneAt(x, y) === undefined) {
+      ctx.beginPath();
+      let a = Math.floor(p.margin + (x * p.zw) - (p.zw / 2)) + 0.5;
+      let b = Math.floor(p.margin + (y * p.zw) - (p.zw / 2)) + 0.5;
+
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      ctx.fillStyle = '#DDDD88'; // FIXME: these should be configuration values
+      // ctx.fillStyle = '#FF0000'; // FIXME: these should be configuration values
+      ctx.fillRect(a, b, p.zw, p.zw);
+      ctx.closePath();
+    }
+
+    ctx.beginPath();
+    ctx.font = '18px bold Arial';
+    ctx.shadowOffsetX = -(p.stone / 10);
+    ctx.shadowOffsetY = (p.stone / 10);
+    ctx.shadowBlur = 0;
+
+    if (this.model.stoneAt(x, y) === 'b') {
+      ctx.fillStyle = '#AAAAAA';
+      ctx.shadowColor = 'rgba(0,0,0,0.25)';
+    } else {
+      ctx.fillStyle = '#444444';
+      ctx.shadowColor = 'rgba(1,1,1,0.25)';
+    }
+
+    let xv = Math.floor(p.margin + (x * p.zw) - (p.zw / 4)) + 0.5;
+    let yv = Math.floor(p.margin + (y * p.zw) + (p.zw / 4)) + 0.5;
+
+    ctx.fillText(label, xv, yv);
+    ctx.closePath();
+  }
+
   deleteStone(x, y) {
     var p = this.goParams;
     var ctx = window.goboardstones.getContext('2d');
@@ -283,24 +323,43 @@ export default class GoBoard {
     });
   }
 
-  resetStones() {
-    if (!this.boardIsSetup) { this.setupBoard(); }
+  clearBoard() {
     var el = window.goboardstones;
     var ctx = el.getContext('2d');
-    var dim = this.model.dimension;
+    ctx.clearRect(0, 0, el.width, el.height);
+  }
+
+  clearLabels() {
+    var el = window.goboardlabels;
+    var ctx = el.getContext('2d');
 
     ctx.clearRect(0, 0, el.width, el.height);
+  }
+
+  resetStones() {
+    if (!this.boardIsSetup) { this.setupBoard(); }
+    this.clearBoard();
+    this.clearLabels();
+
+    var dim = this.model.dimension;
 
     var lastMove = this.model.currentMoveNumber();
     for (let x = 0; x < dim; x++) {
       for (let y = 0; y < dim; y++) {
         let stone = this.model.stoneAt(x, y, true);
-        if (stone === undefined) { continue; }
-        let isLast = (stone.moveNumber() === lastMove);
-        if (stone.stoneType === 'b') {
-          this.drawStone(x, y, true, isLast);
-        } else if (stone.stoneType === 'w') {
-          this.drawStone(x, y, false, isLast);
+        if (stone !== undefined) {
+          let isLast = (stone.moveNumber() === lastMove);
+          if (stone.type === 'b') {
+            this.drawStone(x, y, true, isLast);
+          } else if (stone.type === 'w') {
+            this.drawStone(x, y, false, isLast);
+          }
+        }
+
+        let label = this.model.labelAt(x, y);
+        if (label !== undefined) {
+          console.log(`Drawing label ${label} at ${x}, ${y}`);
+          this.drawLabel(x, y, label);
         }
       }
     }

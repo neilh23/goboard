@@ -1,5 +1,5 @@
 export default class Move {
-  constructor(previousMove, stones, comment) {
+  constructor(previousMove, stones, labels, comment) {
     this.previousMove = previousMove;
 
     // moves below 0 aren't real
@@ -20,6 +20,7 @@ export default class Move {
     }
 
     this.stones = stones;
+    this.labels = labels;
     this.comment = comment;
     this.nextMoves = [];
 
@@ -48,6 +49,7 @@ export default class Move {
     }
 
     for (let stone of stones) { stone.move = this; }
+    for (let label of labels) { label.move = this; }
   }
 
   addStone(stone) {
@@ -55,6 +57,14 @@ export default class Move {
       this.stones = [stone];
     } else {
       this.stones.push(stone);
+    }
+  }
+
+  addLabel(label) {
+    if (this.labels === undefined) {
+      this.labels = [label];
+    } else {
+      this.labels.push(label);
     }
   }
 }

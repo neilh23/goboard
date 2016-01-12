@@ -1,12 +1,12 @@
-import Stone from './stone';
+import Point from './point';
 import Move from './move';
 import GameInfo from './gameinfo';
 
 export default class GameModel {
   constructor() {
-    this.rootMove = new Move(undefined, []);
+    this.rootMove = new Move(undefined, [], []);
     this.rootMove.moveNumber = -1;
-    this.lastMove = new Move(this.rootMove, []);
+    this.lastMove = new Move(this.rootMove, [], []);
     this.currentMove = this.lastMove;
     this.zeroMove = this.lastMove;
     this.gameInfo = new GameInfo();
@@ -40,6 +40,16 @@ export default class GameModel {
       let lead = ((y < 10) ? ' ' : '') + y + ' ';
       console.log(lead + foo.join(' '));
     }
+    console.log('   ' + '0123456789012345678'.split('').join(' '));
+    for (let y = 0; y < 19; y++) {
+      let foo = new Array(19);
+
+      for (let x = 0; x < 19; x++) {
+        foo[x] = this.labelAt(x, y) || '.';
+      }
+      let lead = ((y < 10) ? ' ' : '') + y + ' ';
+      console.log(lead + foo.join(' '));
+    }
   }
 
   logTree() {
@@ -51,14 +61,14 @@ export default class GameModel {
   }
 
   addMove(x, y, color, comment, addToCurrent) {
-    var stone = new Stone(x, y, color);
+    var stone = new Point(x, y, color);
     var move;
     if (addToCurrent) {
       move = this.lastMove || this.rootMove;
       move.addStone(stone);
     } else {
       let lm = (this.lastMove || this.rootMove);
-      move = new Move(lm, [stone], comment);
+      move = new Move(lm, [stone], [], comment);
 
       if (this.firstMove === undefined) {
         this.firstMove = move;
@@ -72,6 +82,13 @@ export default class GameModel {
     return move;
   }
 
+  addLabel(x, y, label) {
+    var point = new Point(x, y, label);
+    var move = this.lastMove || this.zeroMove;
+
+    move.addLabel(point);
+  }
+
   pushBranch() {
     this.branchStack.push({lastMove: this.lastMove});
   }
@@ -83,13 +100,13 @@ export default class GameModel {
   }
 
   addComment(comment) {
-    var move = this.lastMove || this.rootMove;
+    var move = this.lastMove || this.zeroMove;
 
     move.comment = comment;
   }
 
   getComment() {
-    var move = this.currentMove || this.rootMove;
+    var move = this.currentMove || this.zeroMove;
 
     return move.comment || '';
   }
@@ -97,6 +114,21 @@ export default class GameModel {
   informListeners() {
     for (let listener of this.moveListeners) {
       listener.resetStones();
+    }
+  }
+
+  clearLabels() {
+    let dim = this.dimension;
+    if (this.label === undefined) {
+      this.labels = new Array(dim);
+      for (let i = 0; i < dim; i++) { this.labels[i] = new Array(dim); }
+      return;
+    }
+
+    for (let x = 0; x < dim; x++) {
+      for (let y = 0; y < dim; y++) {
+        this.labels[x][y] = undefined;
+      }
     }
   }
 
@@ -110,16 +142,24 @@ export default class GameModel {
     if (dim === undefined) { return; }
     this.position = new Array(dim);
     for (let i = 0; i < dim; i++) { this.position[i] = new Array(dim); }
+    this.clearLabels();
     this.currentMove = undefined;
     this.blackCaptures = 0;
     this.whiteCaptures = 0;
 
-    let initial = this.rootMove.nextMoveChoice;
+    // let initial = this.rootMove.nextMoveChoice;
+    let initial = this.zeroMove;
+
+    // console.log(`Initial Comment: ${initial.moveNumber} ${initial.comment}`);
 
     if (initial !== undefined) {
+      this.currentMove = initial;
       this.firstMove = initial.nextMoveChoice;
       for (let stone of initial.stones) {
         this.position[stone.x][stone.y] = stone;
+      }
+      for (let label of initial.labels) {
+        this.labels[label.x][label.y] = label;
       }
     }
 
@@ -291,6 +331,7 @@ export default class GameModel {
     }
   }
   nextMoveInternal(branch = undefined) {
+    this.clearLabels();
     if (this.position === undefined) { return undefined; }
 
     if (this.currentMove === undefined) {
@@ -312,7 +353,7 @@ export default class GameModel {
       this.currentMove = nm;
     }
     for (let stone of this.currentMove.stones) {
-      if (stone.stoneType === 'x') {
+      if (stone.type === 'x') {
         this.position[stone.x][stone.y] = undefined;
       } else {
         // console.log('setting stone at ' + stone.x + '/' + stone.y);
@@ -325,6 +366,9 @@ export default class GameModel {
         this.checkLiberties(stone.x, stone.y + 1, true);
       }
     }
+    for (let label of this.currentMove.labels) {
+      this.labels[label.x][label.y] = label;
+    }
     return this.currentMove;
   }
   registerMoveListener(listener) {
@@ -334,21 +378,27 @@ export default class GameModel {
     return false;
   }
   stoneAt(x, y, stoneObj = false) {
-    if (this.position === undefined) {
-      return this.undefined;
-    }
-    if (this.dimension === undefined) {
-      return undefined;
-    }
+    if (this.position === undefined) { return undefined; }
+    if (this.dimension === undefined) { return undefined; }
+
     if (x < 0 || y < 0 || x >= this.dimension || y >= this.dimension) {
       return undefined;
     }
 
     if (stoneObj) {
-      return this.position[x][y] && this.position[x][y];
+      return this.position[x][y];
     } else {
-      return this.position[x][y] && this.position[x][y].stoneType;
+      var pos = this.position[x][y];
+      return pos && pos.type;
     }
+  }
+
+  labelAt(x, y) {
+    if (this.labels === undefined) { return undefined; }
+
+    var label = this.labels[x][y];
+
+    return label && label.type;
   }
 
   currentMoveNumber() {

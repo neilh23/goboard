@@ -1,8 +1,8 @@
-class Stone {
-  constructor(x, y, stoneType) {
+class Point {
+  constructor(x, y, type) {
     this.x = x;
     this.y = y;
-    this.stoneType = stoneType;
+    this.type = type;
   }
 
   moveNumber() {
@@ -11,4 +11,4 @@ class Stone {
   }
 }
 
-export default Stone;
+export default Point;
