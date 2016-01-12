@@ -31,6 +31,7 @@ describe('Ear-reddening game', () => {
       expect(model.stoneAt(10, 1)).to.be.undefined;
       expect(model.blackCaptures).to.equal(3);
       expect(model.whiteCaptures).to.equal(4);
+      expect(model.getComment()).to.equal('');
     });
     it(`should be correct up to move 112`, () => {
       model.nextMove();
@@ -41,6 +42,13 @@ describe('Ear-reddening game', () => {
       expect(model.stoneAt(10, 1)).to.equal('w');
       expect(model.blackCaptures).to.equal(3);
       expect(model.whiteCaptures).to.equal(4);
+      expect(model.getComment()).to.equal('');
+    });
+    it(`should be correct up to move 127`, () => {
+      model.goToMove(127);
+      expect(model.currentMoveNumber()).to.equal(127);
+      expect(model.stoneAt(9, 8)).to.equal('b'); // the ear-reddening move :-)
+      expect(model.getComment()).to.equal('The ear-reddening move.');
     });
     it(`should be correct up to move 208`, () => {
       model.goToMove(208);
@@ -63,6 +71,11 @@ describe('Ear-reddening game', () => {
 
       expect(model.blackCaptures).to.equal(5);
       expect(model.whiteCaptures).to.equal(5);
+    });
+    it(`should be correct up to move 127`, () => {
+      model.goToMove(325);
+      expect(model.currentMoveNumber()).to.equal(325);
+      expect(model.getComment()).to.equal('Result = Shusaku by 2 points.');
     });
   });
 

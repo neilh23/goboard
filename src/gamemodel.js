@@ -88,6 +88,12 @@ export default class GameModel {
     move.comment = comment;
   }
 
+  getComment() {
+    var move = this.currentMove || this.rootMove;
+
+    return move.comment || '';
+  }
+
   informListeners() {
     for (let listener of this.moveListeners) {
       listener.resetStones();

@@ -70,6 +70,18 @@ export default class GoBoard {
     ctx.clearRect(x - p.stone, y - p.stone, p.stone * 2, p.stone * 2);
   }
 
+  setComment(comment) {
+    var target = window.gocomments;
+    if (target === undefined) { return; }
+
+    if ((comment || '') === '') {
+      target.innerHTML = '&nbsp;';
+    } else {
+      // use innerText most of the time to stop inject attacks from sgf
+      target.innerText = comment;
+    }
+  }
+
   mousey(evt) {
     var p = this.goParams;
 
@@ -292,7 +304,11 @@ export default class GoBoard {
         }
       }
     }
+
     window.gocounter.innerText = '' + this.model.currentMoveNumber();
+
+    this.setComment(this.model.getComment());
+
     if (this.model.canChangeBranch(true)) {
       window.buttonbdown.style.color = '#000000';
     } else {
