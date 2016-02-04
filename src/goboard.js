@@ -72,8 +72,8 @@ export default class GoBoard {
 
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
-      ctx.fillStyle = '#DDDD88'; // FIXME: these should be configuration values
-      // ctx.fillStyle = '#FF0000'; // FIXME: these should be configuration values
+      //ctx.fillStyle = '#DDDD88'; // FIXME: these should be configuration values
+      ctx.fillStyle = 'rgba(221,221,136,0.7)';
       ctx.fillRect(a, b, p.zw, p.zw);
       ctx.closePath();
     }
